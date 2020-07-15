@@ -25,7 +25,7 @@ library(ggcorrplot)
 
 # Load Data, Basic Info 
 ```{r}
-edu <- read.csv("/Users/basilaka/Desktop/dss/ed_kaggle.csv", na.strings=c("")) #fill in NA where black but clearly missing data 
+edu <- read.csv("/Users/basilaka/Desktop/dss/dss_challenge1/ed_kaggle.csv", na.strings=c("")) #fill in NA where black but clearly missing data 
 edu <- subset(edu, select=-Comments) #removed "Comments" for now
 
 
@@ -112,7 +112,7 @@ wordcloud(words = df$word, freq = df$freq, min.freq = 1,max.words=200, random.or
 barplot(df[1:10,]$freq, las = 2, names.arg = df[1:10,]$word, col ="lightblue", main ="Most frequent words", ylab = "Word frequencies")
 
 #findAssocs(dtm, terms = "science", corlimit = 0.3)
-#for purposes of time, hoping to stick with the top 10 words to create dept. categories. 
+#sticking with the top 10 words to create dept. categories. 
 
 ```
 
@@ -172,7 +172,7 @@ edu.filt$Overall.Pay <- gsub("\\$", "", edu.filt$Overall.Pay)
 edu.filt$Overall.Pay <- gsub(',','',edu.filt$Overall.Pay)
 edu.filt$Overall.Pay <- as.numeric(edu.filt$Overall.Pay)
 
-pay.by.dept <- ggplot(edu.filt, aes(x=label, y=Overall.Pay)) + geom_boxplot(aes(fill=factor(label))) + theme_bw() + ggtitle("Overall Pay by Department") +xlab("Area of Study") + ylab("Overall Pay")
+pay.by.dept <- ggplot(edu.filt, aes(x=label, y=Overall.Pay)) + geom_boxplot(aes(fill=factor(label))) + theme_bw() + ggtitle("Overall Pay by Department") +xlab("Area of Study") + ylab("Overall Pay") + theme(axis.text.x = element_text(angle = 45))
 print(pay.by.dept)
 
 pay.by.yr <- ggplot(edu.filt, aes(x=Program.Year, y=Overall.Pay)) + geom_boxplot(aes(fill=factor(Program.Year))) + theme_bw() + ggtitle("Overall Pay by Academic Year") + xlab("Program Year") + ylab("Overall Pay")
@@ -186,11 +186,13 @@ print(pay.by.4yr)
 
 # ANOVA 
 ```{r}
-group_by(edu.filt.four.year, label) %>%
+library(formattable)
+
+formattable(group_by(edu.filt.four.year, label) %>%
   summarise(
     count = n(),
     mean = mean(Overall.Pay, na.rm = TRUE),
-    sd = sd(Overall.Pay, na.rm = TRUE))
+    sd = sd(Overall.Pay, na.rm = TRUE)))
 
 ggline(edu.filt.four.year, x = "label", y = "Overall.Pay", 
        add = c("mean_se", "jitter"), 
@@ -209,6 +211,8 @@ shapiro.test(x = aov_residuals) # data set violates normality
 kw.by.yr <- kruskal.test(Overall.Pay ~ label, data = edu.filt.four.year) #cause some of the ANOVA assumptions violated 
 DT <- dunnTest(Overall.Pay ~ label, data = edu.filt.four.year, method="bh")  
 print(DT)
+
+
 
 ```
 
