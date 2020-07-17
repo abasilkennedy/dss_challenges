@@ -1,8 +1,16 @@
 ---
 title: "DSS Challenge 1"
-author: "Alexandra B-K"
-date: "7/11/2020"
-output: html_document
+author: "ABK"
+date:  "`r format(Sys.Date())`"
+output:
+   html_document:
+    toc: TRUE
+    toc_depth: 3
+    toc_float:
+      collapsed: FALSE
+      smooth_scroll: FALSE
+      number_sections: FALSE
+    css: alex.css
 ---
 
 ```{r setup, include=FALSE}
@@ -24,9 +32,11 @@ library(ggcorrplot)
 ```
 
 
+
+```{r, include=FALSE}
 # Load Data, Basic Info 
-```{r}
-edu <- read.csv("/Users/basilaka/Desktop/dss/dss_challenge1/ed_kaggle.csv", na.strings=c("")) #fill in NA where black but clearly missing data 
+
+edu <- read.csv("ed_kaggle.csv", na.strings=c("")) #fill in NA where black but clearly missing data 
 edu <- subset(edu, select=-Comments) #removed "Comments" for now
 
 
@@ -35,8 +45,9 @@ edu <- subset(edu, select=-Comments) #removed "Comments" for now
 #after removing NA from department and overall pay: 2477
 ```
 
+
+```{r, include=FALSE}
 # Remove extraneous things ($, commas, etc)
-```{r}
 
 edu$Overall.Pay <- gsub("\\$", "", edu$Overall.Pay)
 edu$Overall.Pay <- gsub(',','',edu$Overall.Pay)
@@ -51,9 +62,17 @@ str(edu)
 edu$Overall.Pay <- as.numeric(edu$Overall.Pay)  
 summary(edu)
 
+
+```
+
+# Check outliers 
+```{r}
 fig1 <- ggplot(edu, aes(x=Program.Year, y=Overall.Pay)) + geom_boxplot() # look at the outliers! 
 fig1 
 
+```
+
+```{r, include=FALSE}
 #remove those outliers
 boxplot(edu$Overall.Pay)
 boxplot(edu$Overall.Pay)$out
@@ -63,8 +82,11 @@ outliers <- boxplot(edu$Overall.Pay, plot=FALSE)$out
 #outli <- edu[which(edu$Overall.Pay %in% outliers),]
 edu <- edu[-which(edu$Overall.Pay %in% outliers),] #yields 8297 remaining 
 boxplot(edu$Overall.Pay)
-print(ggplot(edu, aes(x=Program.Year, y=Overall.Pay)) + geom_boxplot())
+```
 
+# Visualize without outliers 
+```{r}
+print(ggplot(edu, aes(x=Program.Year, y=Overall.Pay)) + geom_boxplot())
 ```
 
 
@@ -77,8 +99,10 @@ edu <- edu %>% drop_na(Department, Overall.Pay)
 
 ```
 
-# Remove nonwords 
-```{r}
+ 
+```{r, include=FALSE}
+# Remove nonwords
+
 library("qdapRegex")
 rm_non_words(edu$Department, trim = TRUE, clean = TRUE,
   pattern = "@rm_non_words", replacement = " ", extract = FALSE,
@@ -88,7 +112,7 @@ rm_non_words(edu$Department, trim = TRUE, clean = TRUE,
 ```
 
 
-# Visualise most common departments 
+# Visualize most common departments 
 ```{r}
 library(wordcloud)
 library(RColorBrewer)
@@ -117,8 +141,9 @@ barplot(df[1:10,]$freq, las = 2, names.arg = df[1:10,]$word, col ="lightblue", m
 ```
 
 
-# Filter anything that doesn't have one of the top departments in it 
+# Filter sample by top departments 
 ```{r}
+
 #not including science since captured in things like "political science" and biology is a science 
 
 
@@ -131,7 +156,7 @@ edu.filt <- subset(edu,top_ten_depts=="TRUE")
 
 ```
 
-# Assign to groups 
+# Group Departments
 ```{r}
 #edu.filt <- edu.filt %>% drop_na(University, Department)
 library(stringr)
@@ -165,7 +190,7 @@ edu.filt$label <- dept.label(edu.filt$Department)
 ```
 
 
-# Visualize pay across to departments / other plots 
+# Visualize pay across to departments / additional visualization 
 ```{r}
 
 edu.filt$Overall.Pay <- gsub("\\$", "", edu.filt$Overall.Pay)
@@ -184,7 +209,7 @@ pay.by.4yr <- ggplot(edu.filt.four.year, aes(x=Program.Year, y=Overall.Pay)) + g
 print(pay.by.4yr)
 ```
 
-# ANOVA 
+# ANOVA: Who earns more by department? 
 ```{r}
 library(formattable)
 
@@ -210,14 +235,13 @@ ggline(edu.filt.four.year, x = "label", y = "Overall.Pay",
 #shapiro.test(x = aov_residuals) # violates normality 
 
 kw.by.yr <- kruskal.test(Overall.Pay ~ label, data = edu.filt.four.year) #because some of the ANOVA assumptions violated 
+print(kw.by.yr)
 DT <- dunnTest(Overall.Pay ~ label, data = edu.filt.four.year, method="bh")  
 print(DT)
 
-
-
 ```
 
-# Explore LW / Predict Pay from LW Ratio? 
+# Explore LW: Can we predict stipend by LW Ratio?
 ```{r}
 library(caTools)
 
