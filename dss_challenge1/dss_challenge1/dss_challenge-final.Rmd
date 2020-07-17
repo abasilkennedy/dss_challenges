@@ -9,8 +9,9 @@ output: html_document
 knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='Figs/', echo=TRUE, tidy=TRUE, message=F, warning=F, cache=T)
 ```
 
+
+```{r, include=FALSE}
 # Load Required Packages
-```{r}
 library(Amelia)
 library(ggplot2)
 library(tidyr)
